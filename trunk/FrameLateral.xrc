@@ -1,0 +1,234 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="Analog">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="Button_onoff_analog">
+              <label>ON/OFF</label>
+              <enabled>0</enabled>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <label>Capture</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxSlider" name="Slider_zoom">
+              <value>800</value>
+              <min>1</min>
+              <max>800</max>
+              <tooltip>Zoom</tooltip>
+              <help>Zoom</help>
+              <style>wxSL_LABELS</style>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <label>Navigate</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxSlider" name="Slider_position">
+              <value>0</value>
+              <min>0</min>
+              <max>800</max>
+              <tooltip>set start positon of the signal</tooltip>
+              <help>set start positon of the signal</help>
+              <style>wxSL_LABELS</style>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>Trigger</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="Check_trigger">
+              <label>use ext</label>
+              <checked>1</checked>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="Configuracao">
+    <object class="wxBoxSizer">
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Escolha o instrumento</label>
+        </object>
+        <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxComboBox" name="Combo_devices">
+              <XRCED>
+                <events>EVT_COMBOBOX|EVT_TEXT_ENTER</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="Button_conect">
+              <bitmap stock_id="wxART_TICK_MARK"/>
+              <tooltip>connect device</tooltip>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="Button_disconnect">
+              <bitmap stock_id="wxART_CROSS_MARK"/>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="Button_refresh_devices">
+              <bitmap stock_id="wxART_FIND"/>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+        </object>
+      </object>
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticLine">
+          <style>wxLI_HORIZONTAL</style>
+        </object>
+        <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>Interface serial</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxComboBox" name="wx_combo_serial_list">
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBitmapButton" name="wxConnectSerial">
+                  <bitmap stock_id="wxART_TICK_MARK"/>
+                  <XRCED>
+                    <events>EVT_BUTTON</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBitmapButton" name="wxButtonRefreshSerial">
+                  <bitmap stock_id="wxART_FIND"/>
+                  <XRCED>
+                    <events>EVT_BUTTON</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBitmapButton" name="wxInitiateView">
+                  <bitmap stock_id="wxART_REPORT_VIEW"/>
+                  <XRCED>
+                    <events>EVT_BUTTON</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="SonarRanging">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Cycles</label>
+              <wrap>0</wrap>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxSpinCtrl" name="Spin_cycles">
+              <value>10</value>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="Button_send_pulse">
+          <label>Send Pulse</label>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Zoom</label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxSlider" name="Slider_zoom">
+              <value>2000</value>
+              <min>0</min>
+              <max>6000</max>
+              <style>wxSL_LABELS</style>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>
