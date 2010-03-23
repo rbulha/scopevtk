@@ -1,0 +1,52 @@
+[Config]
+Relative path=1
+Compilator.FileName=H:\PROGRAMACAO\Python\2_4\Scope\Scope.bat
+Compilator.SaveAll=0
+Compilator.Capture=0
+Compilator.HideOutput=0
+Compilator.LogType=0
+DefaultCPIndex=0
+LogtoEnd=1
+DontOpen=0
+FileFormat=0
+[Project tree]
+Scope_project
+	+ver_01.1
+		..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev01.1\SCOPE8051.c
+	+ver_03
+		..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev03\SCOPE8051.c
+	+ver_01
+		..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_ver01\SCOPE8051.c
+	+Folder
+		Scope.py
+		..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev02\SCOPE8051.c
+		..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev02\c8051F340.h
+		..\..\..\Meus_C8051F340\Compilados_Keil\PEA8051_rev01\PEA8051.c
+[Open project files]
+0=Scope.py
+1=..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev02\c8051F340.h
+2=C:\SiLabs\MCU\Examples\C8051F34x\PCA\F34x_PCA0_Capture_Input.c
+3=FrameLateral_xrc.py
+4=..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev01.1\SCOPE8051.c
+[Selected Project Files]
+Main=
+Selected=..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev01.1\SCOPE8051.c
+[Scope.py]
+TopLine=843
+Caret=47,869
+Mark1=1,622
+[..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev02\c8051F340.h]
+TopLine=206
+Caret=20,223
+Mark1=15,123
+Mark2=9,238
+[C:\SiLabs\MCU\Examples\C8051F34x\PCA\F34x_PCA0_Capture_Input.c]
+TopLine=201
+Caret=18,209
+Mark1=23,205
+[FrameLateral_xrc.py]
+TopLine=19
+Caret=27,42
+[..\..\..\Meus_C8051F340\Compilados_Keil\SCOPE8051_rev01.1\SCOPE8051.c]
+TopLine=425
+Caret=11,378
