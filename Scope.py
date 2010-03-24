@@ -201,7 +201,8 @@ class VtkSNRender(vtk.vtkRenderer):
     def SetMode(self, mode):
       if mode == 'scope':
         self.SetBackground(0.1, 0.2, 0.4)
-          
+      elif mode == '8chScope':          
+        self.SetBackground(0.1, 0.2, 0.4)
     def SetQuadrant(self, Quadrant):
       if Quadrant == 'BL': #Botton left
         #(xmin,ymin,xmax,ymax)
@@ -334,15 +335,15 @@ class Cursor(vtk.vtkProbeFilter):
       
                     
 class VtkSpace:
-    def __init__(self, parent,title):
+    def __init__(self, parent,title,mode='scope'):
       self.Parent = parent
       self.iren = wxVTKRenderWindowInteractor(self.Parent,-1,size = self.Parent.GetSize())
       self.iren.SetPosition((0,0))
       self.renwin = self.iren.GetRenderWindow()
       self.renwin.StereoCapableWindowOn()
       self.renwin.StereoRenderOff()
-      self.renScope = VtkSNRender('')
-      self.renScope.SetMode('scope')
+      self.renScope = VtkSNRender(' ')
+      self.renScope.SetMode(mode)
       self.renwin.AddRenderer(self.renScope)
       
       #Constantes de tela
@@ -438,6 +439,14 @@ class VtkSpace:
       self.xyplot.SetXRange(h_min,h_max)
       self.xyplot.SetYRange(v_min,v_max) 
       self.renwin.Render()
+    def SetDataRange(self,h_max,h_max_unit,v_max,v_max_unit):   
+      self.H_MAX = h_max
+      self.V_MAX = v_max
+      self.V_MAX_UNIT = h_max_unit
+      self.H_MAX_UNIT = v_max_unit
+      self.xyplot.SetXRange(0,h_max)
+      self.xyplot.SetYRange(0,v_max_unit) 
+      self.renwin.Render()             
     def GetPlotRange(self):
       Range={}
       Range['h_min'] = self.h_min
@@ -453,7 +462,6 @@ class VtkSpace:
         self.PickPlaneZ.SetLookupTable(lut)
         self.PickPlaneY.SetLookupTable(lut)
         self.PickPlaneX.SetLookupTable(lut)                       
-         
     def UpdateSize(self):
       size = self.Parent.GetSize()
       self.iren.UpdateSize(size.GetWidth(),size.GetHeight()) 
@@ -793,17 +801,18 @@ class CSonar_Scope(wx.EvtHandler):
         event.Skip()         
           
 class CBase_Scope(wx.EvtHandler):
-    def __init__(self,parent,device,console):
+    def __init__(self,parent,device,console,mode='scope',name='base'):
         wx.EvtHandler.__init__(self)          
         self.integerdata = [0,0]
         self.parent = parent
         self.TextOutput = console
         self.VtkPane  = self.CreateVtkCtrl()
-        self.VtkSpace = VtkSpace(self.VtkPane, 'Analog scope')
+        self.VtkSpace = VtkSpace(self.VtkPane, 'Analog scope',mode)
         self.VtkPane.Bind(wx.EVT_SIZE, self.OnSize)
         self.parent._mgr.AddPane(self.VtkPane, 
-                               wx.aui.AuiPaneInfo().Name("Scope").
-                               CenterPane().CloseButton(True).MaximizeButton(True))        
+                               wx.aui.AuiPaneInfo().Name(name).
+                               Left().CloseButton(True).MaximizeButton(True))
+                               #CenterPane().CloseButton(True).MaximizeButton(True))        
         self.parent._mgr.Update()
         self.VtkSpace.UpdateSize()                 
         
@@ -822,8 +831,8 @@ class CBase_Scope(wx.EvtHandler):
 
                                                               
 class CAnalog_Scope(CBase_Scope):
-    def __init__(self,parent,device,console):
-      CBase_Scope.__init__(self,parent,device,console)
+    def __init__(self,parent,device,console,name='analog'):
+      CBase_Scope.__init__(self,parent,device,console,'scope',name)
       self.PainelAnalog = xrcAnalog(self.parent)                        
       self.PainelAnalog.Button_onoff_analog.Enable(True) 
       LogOut = Text(font=('courier', 9, 'normal'))      
@@ -905,9 +914,27 @@ class CAnalog_Scope(CBase_Scope):
         self.FILE.close()
         
 class CTSW1250(CBase_Scope):
-    def __init__(self,parent,device,console):
-      CBase_Scope.__init__(self,parent,device,console)
-      self.plot_thread = Plot_Thread_TSW1250(1,self,device)
+    def __init__(self,parent,device,console,simulate=False,name='tsw1250'):
+        CBase_Scope.__init__(self,parent,device,console,'scope',name)
+        self.simulate = simulate
+        if simulate:
+            print "[CTSW1250] Init in simulate mode"
+            self.integerdata = self.LoadSimulateData()
+            print '[CTSW1250] Loaded %d points'%len(self.integerdata)
+            print '[CTSW1250] data range:',(len(self.integerdata),max(self.integerdata))
+            self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
+            #self.VtkSpace.SetPlotRange(0, len(self.integerdata),0, max(self.integerdata))
+            self.OnUpdatePlotArea(0)
+        else:
+            self.plot_thread = Plot_Thread_TSW1250(1,self,device)
+    def LoadSimulateData(self):
+        file = open('dump_ch1_4096_dec.txt','r')
+        dadostr = file.readlines()
+        dado = []
+        for value in dadostr:
+            dado.append(int(value))
+        file.close()    
+        return dado
 
 class CConfigPanel(xrcConfiguracao):
     def __init__(self, parent):
@@ -916,6 +943,7 @@ class CConfigPanel(xrcConfiguracao):
     def OnButton_wxButtonRefreshSerial(self, evt):
         available = []
         self.wx_combo_serial_list.Clear()
+        available.append( (257, 'Simulador'))
         for i in range(256):
             try:
                 s = serial.Serial(i)
@@ -927,7 +955,14 @@ class CConfigPanel(xrcConfiguracao):
             print dev
             self.wx_combo_serial_list.Insert(('Port: %s'%dev[1]),i)
     def OnButton_wxInitiateView(self, evt):
-        self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput)      
+        dev = self.wx_combo_serial_list.GetSelection()
+        print '[CConfigPanel.OnButton_wxInitiateView] dev=',dev
+        if dev != wx.NOT_FOUND :
+            DevString = self.wx_combo_serial_list.GetValue() 
+            if DevString == 'Port: Simulador':
+               self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
+            else:
+               self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput)      
               
 class ScopeFrm(wx.Frame):
     def __init__(self, parent, output):
