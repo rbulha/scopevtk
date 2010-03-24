@@ -11,11 +11,12 @@ import os.path
 from USBXpress import USBXpress
 from USBXpress import CLogger
 import vtk
+from vtkScopeView import VtkSpace
 import wx
 import wx.aui
 import wx.lib.newevent
-from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
-from vtk import vtkRenderWindow, vtkRenderer
+#from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
+#from vtk import vtkRenderWindow, vtkRenderer
 #from Templates.FrameLateral_xrc import xrcConfiguracao
 from FrameLateral_xrc import xrcConfiguracao
 from FrameLateral_xrc import xrcAnalog
@@ -188,128 +189,6 @@ class ShellFrame:
         ret = self.USBXpress.WriteRaw(len(wbuffer),wbuffer)   
         self.Log.OUT("Write Raw -- ret=%d\n",ret)
         
-        
-class VtkSNRender(vtk.vtkRenderer):
-    def __init__(self, nome):
-      #vtk.vtkRenderer.__init__(self)
-      self.label_t = nome
-      self.scree_text_offset = 10
-      self.ShowLabel()
-    def SetLabel(self, nome):
-      self.label_t = nome
-      self.text_label.SetInput(self.label_t)
-    def SetMode(self, mode):
-      if mode == 'scope':
-        self.SetBackground(0.1, 0.2, 0.4)
-      elif mode == '8chScope':          
-        self.SetBackground(0.1, 0.2, 0.4)
-    def SetQuadrant(self, Quadrant):
-      if Quadrant == 'BL': #Botton left
-        #(xmin,ymin,xmax,ymax)
-        self.SetViewport(0.0, 0.0, 0.5, 0.5)
-        self.SetBackground(0.1, 0.2, 0.4)
-      if Quadrant == 'TL': #Top left
-        self.SetViewport(0.0, 0.5, 0.5, 1.0)
-        self.SetBackground(0.1, 0.2, 0.5)
-      if Quadrant == 'BR': #Botton right          
-        self.SetViewport(0.5, 0.0, 1.0, 0.5)
-        self.SetBackground(0.1, 0.2, 0.6)
-      if Quadrant == 'TR': #Top right           
-        self.SetViewport(0.5, 0.5, 1.0, 1.0)
-        self.SetBackground(0.1, 0.2, 0.7)                     
-    def SetViewPoint(self, View):
-        if View == 'Top':
-          self.camera = self.GetActiveCamera()
-          self.camera.SetFocalPoint(0, 0, 0)
-          self.camera.SetPosition(0, 0, 1)          
-          self.camera.SetViewUp(0, 1, 0)
-          #self.label_t = 'Top'
-        if View == 'Left':
-          self.camera = self.GetActiveCamera()
-          print self.camera 
-          self.camera.SetFocalPoint(0, 0, 0)
-          self.camera.SetPosition(0, 1, 0)
-          self.camera.SetViewUp(1, 0, 0)
-          #self.camera.OrthogonalizeViewUp()
-          #self.ResetCameraClippingRange()
-          print 'modificada'
-          print self.camera
-          #self.label_t = 'Left'
-        if View == 'Right':
-          self.camera = self.GetActiveCamera()
-          print self.camera 
-          self.camera.SetFocalPoint(0, 0, 0)
-          self.camera.SetPosition(1, 0, 0)
-          self.camera.SetViewUp(0, 1, 0)
-          #self.label_t = 'Right' 
-        if View == '3d':
-          self.camera = self.GetActiveCamera()
-          print self.camera 
-          self.camera.SetFocalPoint(0, 0, 0)
-          self.camera.SetPosition(1000, 1000, 1000)
-          self.camera.SetViewUp(0, 0, -1)
-          self.ResetCamera()  
-                  
-        self.ResetCameraClippingRange()           
-        #self.ShowLabel()
-            
-    def ShowLabel(self):
-      self.tprop = vtk.vtkTextProperty()
-      size = self.GetSize()
-      self.text_label = vtk.vtkTextActor()
-      #self.text_label.ScaledTextOn()
-      self.text_label.SetPosition(10, size[1] - 12)
-      self.text_label.SetInput(self.label_t) 
-      
-      self.tprop.SetFontSize(12)
-      self.tprop.SetFontFamilyToArial()
-      self.tprop.SetJustificationToLeft()
-      #self.tprop.BoldOn()
-      #self.tprop.ItalicOn()
-      self.tprop.ShadowOn()
-      self.tprop.SetColor(0.9, 0.8, 0.8)
-      self.text_label.SetTextProperty(self.tprop)
-      self.AddActor2D(self.text_label)
-    def UpdateSize(self):
-      size = self.GetSize() 
-      self.text_label.SetPosition(10, size[1] - 12)   
-    def InitiateScreenText(self):
-      '''
-      self.tpropScren = vtk.vtkTextProperty()
-      size = self.GetSize()
-      self.text_screen = vtk.vtkTextActor()
-      self.text_screen.SetPosition(10, 10)
-      self.text_screen.SetInput(' ') 
-      
-      self.tpropScren.SetFontSize(10)
-      self.tpropScren.SetFontFamilyToArial()
-      self.tpropScren.SetJustificationToLeft()
-      #self.tprop.BoldOn()
-      #self.tprop.ItalicOn()
-      #self.tpropScren.ShadowOn()
-      self.tpropScren.SetColor(0.9, 0.8, 0.8)
-      self.text_screen.SetTextProperty(self.tpropScren)
-      '''
-      #self.scree_text_offset = 10
-      self.textMapper = vtk.vtkTextMapper()
-      tprop = self.textMapper.GetTextProperty()
-      tprop.SetFontFamilyToArial()
-      tprop.SetFontSize(10)
-      #tprop.BoldOn()
-      #tprop.ShadowOn()
-      tprop.SetColor(0.5, 0.9, 0.5)
-      self.textActor = vtk.vtkActor2D()
-      self.textActor.VisibilityOff()
-      self.textActor.SetMapper(self.textMapper)
-
-      self.AddActor2D(self.textActor)                                 
-    def SetScreenText(self,x,y,text):
-      self.textActor.VisibilityOff()
-      self.textActor.SetPosition(x, y-self.scree_text_offset)
-      self.scree_text_offset = self.scree_text_offset + 10
-      self.textMapper.SetInput(text) 
-      self.textActor.VisibilityOn()
-    
 class Cursor(vtk.vtkProbeFilter):
     def __init__(self,source):
       self.line = vtk.vtkLineSource()
@@ -332,263 +211,6 @@ class Cursor(vtk.vtkProbeFilter):
       self.SetPoints(self.CursorPoints)
       #self.GetPointData().SetScalars(self.CursorValues)
       '''
-      
-                    
-class VtkSpace:
-    def __init__(self, parent,title,mode='scope'):
-      self.Parent = parent
-      self.iren = wxVTKRenderWindowInteractor(self.Parent,-1,size = self.Parent.GetSize())
-      self.iren.SetPosition((0,0))
-      self.renwin = self.iren.GetRenderWindow()
-      self.renwin.StereoCapableWindowOn()
-      self.renwin.StereoRenderOff()
-      self.renScope = VtkSNRender(' ')
-      self.renScope.SetMode(mode)
-      self.renwin.AddRenderer(self.renScope)
-      
-      #Constantes de tela
-      self.H_MAX = 800
-      self.V_MAX = 1030
-      
-      self.V_MAX_UNIT = 3.3
-      self.H_MAX_UNIT = 0.004 
-      
-      self.V_DIG_MAX_UNIT = 3.3
-      self.H_DIG_MAX_UNIT = 65000
-      
-      self.points = vtk.vtkPoints()
-      self.values = vtk.vtkFloatArray()
-      
-      self.PontosNaTela = 0
-      
-      self.values.SetName("Volts")
-      toggle = 0.0
-      edge = 500
-      for i in range(self.H_MAX+6000):
-        self.points.InsertPoint(i,0,0,0)
-        self.values.InsertValue(i,toggle)
-        if i == edge:
-          if toggle:
-            toggle = 0.0
-          else:  
-            toggle = self.V_MAX_UNIT/2
-          edge = edge + 500
-        self.PontosNaTela += 1 
-        
-      #self.values.InsertValue(0,0)  
-
-      self.polydata1 = vtk.vtkPolyData()
-      self.polydata1.SetPoints(self.points)
-      self.polydata1.GetPointData().SetScalars(self.values)
-      #self.polydata1.SetLines(self.lines)
-      
-      #self.XCursorLine = Cursor(self.polydata1)
-    
-      self.xyplot = vtk.vtkXYPlotActor()
-      self.xyplot.AddInput(self.polydata1)
-      #self.xyplot.AddInput(self.XCursorLine.GetOutput())
-      self.xyplot.GetProperty().SetColor(0, 1, 0)
-      self.xyplot.GetProperty().SetLineWidth(1)
-      self.xyplot.GetProperty().SetPointSize(2)
-      
-      self.xyplot.GetAxisLabelTextProperty().SetFontSize(1)
-      self.xyplot.GetAxisLabelTextProperty().BoldOff()
-      
-      self.xyplot.PlotPointsOn()
-      self.xyplot.PlotLinesOn()
-      
-      self.xyplot.SetTitle(title)
-      self.xyplot.SetXTitle("")
-      self.xyplot.SetYTitle("")
-      self.xyplot.GetPositionCoordinate().SetValue(0.02, 0.1, 0)
-      self.xyplot.GetPosition2Coordinate().SetValue(0.99, 0.9, 0)
-      #self.SetDigitalPlotRange()
-      
-      #viewX = 400.0
-      #viewY = 600.0
-      #self.xyplot.ViewportToPlotCoordinate( self.renScope, viewX, viewY)
-      #print 'coordenadas X: ',viewX
-      #print 'coordenadas Y: ',viewY 	
-      
-      self.PlotWidget = vtk.vtkXYPlotWidget()
-      self.PlotWidget.SetXYPlotActor(self.xyplot)
-      self.PlotWidget.SetInteractor(self.iren)
-      
-      self.renScope.AddActor2D(self.xyplot)
-    def SetAnalogPlotRange(self):
-      self.h_max = self.H_MAX
-      self.h_min = 0
-      self.v_min = 0
-      self.v_max = self.V_MAX_UNIT           
-      self.xyplot.SetXRange(0,self.H_MAX)
-      self.xyplot.SetYRange(0,self.V_MAX_UNIT) 
-      self.renwin.Render()
-    def SetDigitalPlotRange(self):
-      self.h_max = self.H_DIG_MAX_UNIT
-      self.h_min = 0
-      self.v_min = 0
-      self.v_max = self.V_DIG_MAX_UNIT      
-      self.xyplot.SetXRange(0,self.H_DIG_MAX_UNIT)
-      self.xyplot.SetYRange(0,self.V_DIG_MAX_UNIT)
-      self.renwin.Render() 
-    def SetPlotRange(self,h_min, h_max,v_min, v_max):
-      self.h_max = h_max
-      self.h_min = h_min
-      self.v_min = v_min
-      self.v_max = v_max
-      self.xyplot.SetXRange(h_min,h_max)
-      self.xyplot.SetYRange(v_min,v_max) 
-      self.renwin.Render()
-    def SetDataRange(self,h_max,h_max_unit,v_max,v_max_unit):   
-      self.H_MAX = h_max
-      self.V_MAX = v_max
-      self.V_MAX_UNIT = h_max_unit
-      self.H_MAX_UNIT = v_max_unit
-      self.xyplot.SetXRange(0,h_max)
-      self.xyplot.SetYRange(0,v_max_unit) 
-      self.renwin.Render()             
-    def GetPlotRange(self):
-      Range={}
-      Range['h_min'] = self.h_min
-      Range['h_max'] = self.h_max
-      Range['v_min'] = self.v_min
-      Range['v_max'] = self.v_max      
-      return Range       
-    def SetCliplingLookuptable(self, tipo):
-      if tipo == 'Green':
-        lut = vtk.vtkLookupTable()
-        lut.SetHueRange(0.0, 0.66667)
-        lut.SetAlphaRange(0.0,0.8)
-        self.PickPlaneZ.SetLookupTable(lut)
-        self.PickPlaneY.SetLookupTable(lut)
-        self.PickPlaneX.SetLookupTable(lut)                       
-    def UpdateSize(self):
-      size = self.Parent.GetSize()
-      self.iren.UpdateSize(size.GetWidth(),size.GetHeight()) 
-      self.renScope.UpdateSize()
-
-    def UpdateLabel(self, nome):
-      self.renScope.SetLabel(nome)
-      
-    def GetActiveVolume(self):
-      return self.Vol3D
-    
-    def Points(self, mode):
-      if self.xyplot.GetPlotPoints():
-        self.xyplot.PlotPointsOff()
-        return 0
-      else:  
-        self.xyplot.PlotPointsOn()
-        return 1
-        
-      
-    def Lines(self, mode):
-      if self.xyplot.GetPlotLines():
-        self.xyplot.PlotLinesOff()
-        return 0 
-      else:
-        self.xyplot.PlotLinesOn()
-        return 1   
-    
-    def UpdateDataPlot(self, data):
-      self.values = vtk.vtkFloatArray()
-      self.values.SetName("Volts")
-      #self.values = self.polydata1.GetPointData().GetScalars()
-      #print 'data size: ',self.values.GetDataSize()
-      ''' teste
-      r = Random(35)
-      for i in range(800):
-        number = r.random()
-        number=number*10
-        self.values.InsertNextValue(number)    
-      self.polydata1.GetPointData().SetScalars(self.values)  
-      '''
-      '''if self.PontosNaTela >= 1600:
-        #self.values.Initialize()
-        self.values = vtk.vtkFloatArray()  
-        self.PontosNaTela = 0
-      '''    
-      for byte in data:
-        volts = (float(byte)/self.V_MAX)*self.V_MAX_UNIT
-        self.values.InsertNextValue(volts)
-        #self.PontosNaTela+=1
-      
-      self.polydata1.GetPointData().SetScalars(self.values)
-      self.renwin.Render()
-      
-    def UpdateDataDigitalPlot(self, data):
-      self.values = vtk.vtkFloatArray()
-      self.values.SetName("Transitions")
-      self.renScope.InitiateScreenText()
-      toggle = 0.0
-      timecount = ' '
-      edges_found = data[0]
-      
-      word_found = ''
-      edges_in_word = 0
-      last_count = 0
-      bits_inter_edge = 0
-      counter_per_bit = 200
-      edge_counter = 0
-      start_time_trip = 0
-      stop_time_trip = 0
-      
-      MAX_EDGES_DETECT = 23
-      
-      HI_V = self.V_DIG_MAX_UNIT 
-      LO_V = 0.2
-      toggle = HI_V
-      index = 1
-      for i in range(self.H_DIG_MAX_UNIT):
-        #self.points.InsertPoint(i,0,0,0)
-        if index < 800:
-          self.values.InsertValue(i,toggle)
-          if i == data[index]:
-            index = index + 1
-            if toggle == LO_V:
-              toggle = HI_V
-            else:  
-              toggle = LO_V
-            
-            edge_counter = edge_counter + 1
-            
-            if stop_time_trip == 0:
-              if start_time_trip != 0:
-                stop_time_trip = i
-            
-              if edge_counter >= 10 and start_time_trip == 0:
-                start_time_trip = i
-  
-              
-            if edges_in_word < MAX_EDGES_DETECT:
-              bits_inter_edge = (i-last_count) / counter_per_bit
-              #word_found = word_found + ('%04d '%(i-last_count))
-              for bits in range(bits_inter_edge):
-                word_found = word_found + ('%d '%(toggle/HI_V))
-              last_count = i
-              edges_in_word = edges_in_word + 1              
-      '''      
-      for byte in data:
-        #self.values.InsertNextValue(byte)
-        self.values.InsertNextValue(toggle)
-        #atualstr = ('%05d ')%(byte-lastcounter)
-        atualstr = ('%05d ')%byte
-        lastcounter = byte
-        timecount = timecount + atualstr
-        if toggle == 0.0 :
-          toggle = 512.0
-        else:
-          toggle = 0.0  
-        #self.PontosNaTela+=1
-      '''
-      statistics = ('Bordas detectadas: %05d - ')%edges_found
-      self.renScope.Clear()
-      self.polydata1.GetPointData().SetScalars(self.values)
-      size = self.Parent.GetSize()
-      #self.renScope.SetScreenText(30,size.GetHeight()-20,(statistics+word_found))
-      time_trip = ('tempo de voo=%d')%(stop_time_trip-start_time_trip)
-      self.renwin.Render()
-      return (statistics+word_found+'\n'+time_trip)
 
 class BasicThread:
     def __init__(self, indentificador, parent):
@@ -801,20 +423,25 @@ class CSonar_Scope(wx.EvtHandler):
         event.Skip()         
           
 class CBase_Scope(wx.EvtHandler):
-    def __init__(self,parent,device,console,mode='scope',name='base'):
+    def __init__(self,parent,device,console,name='base',nchannel=1):
         wx.EvtHandler.__init__(self)          
         self.integerdata = [0,0]
         self.parent = parent
         self.TextOutput = console
         self.VtkPane  = self.CreateVtkCtrl()
-        self.VtkSpace = VtkSpace(self.VtkPane, 'Analog scope',mode)
+        self.VtkSpace = VtkSpace(self.VtkPane, ' ',nchannel)
         self.VtkPane.Bind(wx.EVT_SIZE, self.OnSize)
         self.parent._mgr.AddPane(self.VtkPane, 
                                wx.aui.AuiPaneInfo().Name(name).
-                               Left().CloseButton(True).MaximizeButton(True))
-                               #CenterPane().CloseButton(True).MaximizeButton(True))        
+                               CenterPane().CloseButton(True).MaximizeButton(True))
+                               #Left().CloseButton(True).MaximizeButton(True))
+                               #CenterPane().CloseButton(True).MaximizeButton(True))  
         self.parent._mgr.Update()
-        self.VtkSpace.UpdateSize()                 
+        self.VtkSpace.UpdateSize()
+        size = self.parent.GetSize()
+        size.IncBy(10,10)
+        self.parent.SetSize(size)
+         
         
     def CreateVtkCtrl(self):
         VtkPanel = wx.Panel(id=wxID_FRMPANEL, name='vtkpanel', 
@@ -827,12 +454,12 @@ class CBase_Scope(wx.EvtHandler):
         self.VtkSpace.UpdateSize()
         event.Skip()         
     def OnUpdatePlotArea(self, event):
-        self.VtkSpace.UpdateDataPlot(self.integerdata) 
+        self.VtkSpace.UpdateDataPlot(self.integerdata,1) 
 
                                                               
 class CAnalog_Scope(CBase_Scope):
-    def __init__(self,parent,device,console,name='analog'):
-      CBase_Scope.__init__(self,parent,device,console,'scope',name)
+    def __init__(self,parent,device,console,name='analog',nchannel=1):
+      CBase_Scope.__init__(self,parent,device,console,name,nchannel)
       self.PainelAnalog = xrcAnalog(self.parent)                        
       self.PainelAnalog.Button_onoff_analog.Enable(True) 
       LogOut = Text(font=('courier', 9, 'normal'))      
@@ -915,7 +542,7 @@ class CAnalog_Scope(CBase_Scope):
         
 class CTSW1250(CBase_Scope):
     def __init__(self,parent,device,console,simulate=False,name='tsw1250'):
-        CBase_Scope.__init__(self,parent,device,console,'scope',name)
+        CBase_Scope.__init__(self,parent,device,console,name,8)
         self.simulate = simulate
         if simulate:
             print "[CTSW1250] Init in simulate mode"
@@ -940,6 +567,7 @@ class CConfigPanel(xrcConfiguracao):
     def __init__(self, parent):
         xrcConfiguracao.__init__(self, parent)
         self.parent = parent
+        self.AnalogScope = None
     def OnButton_wxButtonRefreshSerial(self, evt):
         available = []
         self.wx_combo_serial_list.Clear()
@@ -955,14 +583,15 @@ class CConfigPanel(xrcConfiguracao):
             print dev
             self.wx_combo_serial_list.Insert(('Port: %s'%dev[1]),i)
     def OnButton_wxInitiateView(self, evt):
-        dev = self.wx_combo_serial_list.GetSelection()
-        print '[CConfigPanel.OnButton_wxInitiateView] dev=',dev
-        if dev != wx.NOT_FOUND :
-            DevString = self.wx_combo_serial_list.GetValue() 
-            if DevString == 'Port: Simulador':
-               self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
-            else:
-               self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput)      
+        if not self.AnalogScope:
+            dev = self.wx_combo_serial_list.GetSelection()
+            print '[CConfigPanel.OnButton_wxInitiateView] dev=',dev
+            if dev != wx.NOT_FOUND :
+                DevString = self.wx_combo_serial_list.GetValue() 
+                if DevString == 'Port: Simulador':
+                   self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
+                else:
+                   self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput)      
               
 class ScopeFrm(wx.Frame):
     def __init__(self, parent, output):
@@ -982,14 +611,19 @@ class ScopeFrm(wx.Frame):
       
       # tell FrameManager to manage this frame        
       self._mgr = wx.aui.AuiManager()
-      self._mgr.SetManagedWindow(self)      
-      self.TextOutput = self.CreateTextCtrl()                  
-      self.TreeControl = self.CreateTreeCtrl()     
-      self._mgr.AddPane(self.TreeControl, wx.aui.AuiPaneInfo().
-                        Name("Files").Caption("Tree Pane").
-                        Left().CloseButton(True).MaximizeButton(True)) 
+      self._mgr.SetManagedWindow(self)   
+      
+      #Tree control   
+      #self.TreeControl = self.CreateTreeCtrl()     
+      #self._mgr.AddPane(self.TreeControl, wx.aui.AuiPaneInfo().
+      #                  Name("Files").Caption("Tree Pane").
+      #                  Left().CloseButton(True).MaximizeButton(True)) 
                         
       #self.PainelControle = xrcConfiguracao(self)
+      
+      #Console output
+      self.TextOutput = self.CreateTextCtrl()
+      
       self.PainelControle = CConfigPanel(self)                        
       self._mgr.AddPane(self.PainelControle, wx.aui.AuiPaneInfo().
                         Name("Config").Caption("Configuração").
