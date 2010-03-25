@@ -1,5 +1,6 @@
 import serial
 import struct
+import time
 
 class CSerialCaptureBase():
     def __init__(self):
@@ -13,13 +14,19 @@ class CSerialCaptureBase():
         if ch == 1:
             cmd = struct.pack('BBBB',2,8,19,0)
             self.ser.write(cmd)
-            
+    def OneShotCapture(self, iport, ch, Npoints):
+        self.Connect(iport)
+        self.SelectChannel(ch)
+        self.Capture(Npoints)
+        self.Disconnect()        
     def Capture(self,Npoints):
         cmd = struct.pack('6B',0,255,0,0,1,3)
-        self.ser.write(cmd) 
+        self.ser.write(cmd)
+        time.sleep(0.1) 
+        unpack_format = '%dH'%Npoints
         retorno = self.ser.read(Npoints)
         if len(retorno) == Npoints:
-            dados = struct.unpack('2000H',retorno)
+            dados = struct.unpack(unpack_format,retorno)
             return dados
         else:
             print 'Falha na captura'
