@@ -22,6 +22,7 @@ from FrameLateral_xrc import xrcConfiguracao
 from FrameLateral_xrc import xrcAnalog
 from FrameLateral_xrc import xrcSonarRanging
 import serial
+from TSW1205 import CSerialCaptureBase
 
 (UpdatePlotEvent, EVT_UPDATE_PLOT) = wx.lib.newevent.NewEvent()
 #evento para gerar gráfico de analise digital
@@ -441,8 +442,6 @@ class CBase_Scope(wx.EvtHandler):
         size = self.parent.GetSize()
         size.IncBy(10,10)
         self.parent.SetSize(size)
-         
-        
     def CreateVtkCtrl(self):
         VtkPanel = wx.Panel(id=wxID_FRMPANEL, name='vtkpanel', 
                 parent=self.parent,
@@ -455,7 +454,6 @@ class CBase_Scope(wx.EvtHandler):
         event.Skip()         
     def OnUpdatePlotArea(self, event):
         self.VtkSpace.UpdateDataPlot(self.integerdata,1) 
-
                                                               
 class CAnalog_Scope(CBase_Scope):
     def __init__(self,parent,device,console,name='analog',nchannel=1):
@@ -591,7 +589,7 @@ class CConfigPanel(xrcConfiguracao):
                 if DevString == 'Port: Simulador':
                    self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
                 else:
-                   self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput)      
+                   self.AnalogScope = CTSW1250(self.parent, dev, self.parent.TextOutput)      
               
 class ScopeFrm(wx.Frame):
     def __init__(self, parent, output):
