@@ -4,7 +4,7 @@ import time
 
 class CSerialCaptureBase():
     def __init__(self):
-        pass
+        print '[CSerialCaptureBase] - Init'
     def Connect(self, iport):
         self.ser = serial.Serial(iport)
         self.ser.timeout = 10
@@ -17,19 +17,22 @@ class CSerialCaptureBase():
     def OneShotCapture(self, iport, ch, Npoints):
         self.Connect(iport)
         self.SelectChannel(ch)
-        self.Capture(Npoints)
-        self.Disconnect()        
+        data = self.Capture(Npoints)
+        self.Disconnect()
+        return data        
     def Capture(self,Npoints):
         cmd = struct.pack('6B',0,255,0,0,1,3)
         self.ser.write(cmd)
         time.sleep(0.1) 
         unpack_format = '%dH'%Npoints
         retorno = self.ser.read(Npoints)
+        self.ser.flushInput()
         if len(retorno) == Npoints:
             dados = struct.unpack(unpack_format,retorno)
             return dados
         else:
             print 'Falha na captura'
+            return []
     def FindTSW1205(self):
         available = []
         que1 = struct.pack('BB',3,16)
