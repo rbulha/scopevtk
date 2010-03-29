@@ -149,6 +149,15 @@
                 <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
               </object>
               <object class="sizeritem">
+                <object class="wxBitmapButton" name="wxDisconnectSerial">
+                  <bitmap stock_id="wxART_CROSS_MARK"/>
+                  <XRCED>
+                    <events>EVT_BUTTON</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+              </object>
+              <object class="sizeritem">
                 <object class="wxBitmapButton" name="wxButtonRefreshSerial">
                   <bitmap stock_id="wxART_FIND"/>
                   <XRCED>
@@ -228,6 +237,46 @@
             <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
           </object>
         </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="TSW1250Panel">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxSpinCtrl" name="wxChannelSelector">
+              <value>1</value>
+              <min>1</min>
+              <max>8</max>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="wxChCaptureButton">
+              <bitmap stock_id="wxART_GO_FORWARD"/>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="wxCheckChSimulation">
+              <label>simulate</label>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+          <label>Channel</label>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
       </object>
     </object>
   </object>
