@@ -21,12 +21,15 @@ import wx.lib.newevent
 from FrameLateral_xrc import xrcConfiguracao
 from FrameLateral_xrc import xrcAnalog
 from FrameLateral_xrc import xrcSonarRanging
+from FrameLateral_xrc import xrcTSW1250Panel
 import serial
 from TSW1205 import CSerialCaptureBase
 
 (UpdatePlotEvent, EVT_UPDATE_PLOT) = wx.lib.newevent.NewEvent()
 #evento para gerar gráfico de analise digital
 (UpdateDigitalPlotEvent, EVT_UPDATE_DIGITAL_PLOT) = wx.lib.newevent.NewEvent()
+#event for TSW1205 capture finished
+(TSW1205CaptureFinishedEvent, EVT_TSW1205_CAPTURE_FINISHED) = wx.lib.newevent.NewEvent()
 
 wxID_FRMPANEL = wx.NewId()
 wxID_FRM = wx.NewId()
@@ -238,13 +241,27 @@ class BasicThread:
         print 'rodando virtual'
 
 class Plot_Thread_TSW1250(BasicThread):
-  def __init__(self, indentificador, parent, device):
+  def __init__(self, indentificador, parent, device_port):
     BasicThread.__init__(self, indentificador, parent)
-    self.device = device
+    self.COMPort = device_port
   def run(self):
-    print 'running dialog, ',self.id 
-    while self.IsRunning():
-        pass    
+    print '[Plot_Thread_TSW1250] running',self.id
+    print '[Plot_Thread_TSW1250] Conetting to Port=%d'%self.COMPort
+    print '[Plot_Thread_TSW1250] Starting capture of %d points'%self.parent.Npoints
+    count = 200
+    while self.IsRunning() and count > 0:
+        t0 = time()
+        self.parent.integerdata = self.parent.Device.Capture(self.parent.Npoints)
+        t1 = time()
+        print '[Plot_Thread_TSW1250] Capture (%d) frame time: %f sec'%(count,(t1-t0))     
+        #
+        #    pass    
+        evt = TSW1205CaptureFinishedEvent(Obj = self)
+        wx.PostEvent(self.parent, evt)
+        count = count - 1
+        sleep(0.1)
+    print '[Plot_Thread_TSW1250] finishing thread: ',self.id    
+        
 class Plot_Thread(BasicThread):
   def __init__(self, indentificador, parent):
     BasicThread.__init__(self, indentificador, parent)
@@ -542,54 +559,108 @@ class CTSW1250(CBase_Scope):
     def __init__(self,parent,device,console,simulate=False,name='tsw1250'):
         CBase_Scope.__init__(self,parent,device,console,name,8)
         self.simulate = simulate
-        if simulate:
-            print "[CTSW1250] Init in simulate mode"
-            self.integerdata = self.LoadSimulateData()
-            print '[CTSW1250] Loaded %d points'%len(self.integerdata)
-            print '[CTSW1250] data range:',(len(self.integerdata),max(self.integerdata))
-            self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
-            #self.VtkSpace.SetPlotRange(0, len(self.integerdata),0, max(self.integerdata))
-            self.OnUpdatePlotArea(0)
-        else:
-            self.plot_thread = Plot_Thread_TSW1250(1,self,device)
+        self.DevicePort = device
+        self.Channel = 1
+        self.Npoints = 4096
+        self.plot_thread = None
+        self.Bind(EVT_TSW1205_CAPTURE_FINISHED, self.OnUpdatePlotArea)
+        self.InitDevice()
+    def InitDevice(self):
+        self.Device = CSerialCaptureBase()
+        self.Device.Connect(self.DevicePort)
+        sleep(0.1)
+        self.Device.InitTSW1205()    
+        sleep(0.1)  
+        self.Device.SelectChannel(self.Channel)
+        sleep(0.1)
+        self.Device.SeletcDataLength(self.Npoints)
+        sleep(0.1)
+    def CloseDevice(self):
+        self.Device.Disconnect()
+    def LoadSimulation(self, channel):
+        print "[CTSW1250] Init in simulate mode"
+        self.integerdata = self.LoadSimulateData()
+        print '[CTSW1250] Loaded %d points'%len(self.integerdata)
+        print '[CTSW1250] data range:',(len(self.integerdata),max(self.integerdata))
+        self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
+        #self.VtkSpace.SetPlotRange(0, len(self.integerdata),0, max(self.integerdata))
+        self.Channel = channel
+        evt = TSW1205CaptureFinishedEvent(Obj = self)
+        self.OnUpdatePlotArea(evt)          
+    def Capture(self):
+        if not self.plot_thread:
+            self.plot_thread = Plot_Thread_TSW1250('TSW1205',self,self.DevicePort)
+            self.plot_thread.start()      
+    def SetChannel(self, channel):
+        self.Channel = channel
     def LoadSimulateData(self):
-        file = open('dump_ch1_4096_dec.txt','r')
+        file = open('dump_ch1_4096_100KHz_30mvpp.txt','r')
         dadostr = file.readlines()
         dado = []
         for value in dadostr:
             dado.append(int(value))
         file.close()    
         return dado
+    def OnUpdatePlotArea(self, event):
+        self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
+        self.VtkSpace.UpdateDataPlot(self.integerdata,self.Channel)
+        self.plot_thread = None        
+
+class CTSW1250Panel(xrcTSW1250Panel):
+    def __init__(self, parent):
+        xrcTSW1250Panel.__init__(self, parent)
+        self.parent = parent
+    def OnButton_wxChCaptureButton(self, evt):
+        if self.parent.AnalogScope:
+            self.parent.AnalogScope.Channel = self.wxChannelSelector.GetValue()
+            if self.wxCheckChSimulation.GetValue():
+                self.parent.AnalogScope.LoadSimulation(self.wxChannelSelector.GetValue())
+            else:   
+                self.parent.AnalogScope.Capture()
 
 class CConfigPanel(xrcConfiguracao):
     def __init__(self, parent):
         xrcConfiguracao.__init__(self, parent)
         self.parent = parent
-        self.AnalogScope = None
+        self.parent.AnalogScope = None
     def OnButton_wxButtonRefreshSerial(self, evt):
-        available = []
+        self.availableCOM = []
         self.wx_combo_serial_list.Clear()
-        available.append( (257, 'Simulador'))
+        self.availableCOM.append( (257, 'Simulador'))
         for i in range(256):
             try:
                 s = serial.Serial(i)
-                available.append( (i, s.portstr))
+                self.availableCOM.append( (i, s.portstr))
                 s.close()   # explicit close 'cause of delayed GC in java
             except serial.SerialException:
                 pass
-        for i,dev in enumerate(available):        
+        for i,dev in enumerate(self.availableCOM):        
             print dev
-            self.wx_combo_serial_list.Insert(('Port: %s'%dev[1]),i)
+            self.wx_combo_serial_list.Insert(('%s'%dev[1]),i)
+    def OnButton_wxConnectSerial(self, evt):
+        if not self.parent.AnalogScope:
+            selected = self.wx_combo_serial_list.GetSelection()
+            if selected != wx.NOT_FOUND :
+                for COM in self.availableCOM:
+                    if COM[1] == self.wx_combo_serial_list.GetValue():
+                       print '[CConfigPanel] initiate CTSW1205 on port=%d'%COM[0]
+                       self.parent.AnalogScope = CTSW1250(self.parent, device=COM[0], console=self.parent.TextOutput)
+                       self.parent.TSW1250Panel = CTSW1250Panel(self.parent)     
+                       self.parent._mgr.AddPane(self.parent.TSW1250Panel, 
+                                        wx.aui.AuiPaneInfo().Name("TSW1205").Caption("TSW1205").
+                                        Left().CloseButton(True).MaximizeButton(True))
+                       self.parent._mgr.Update()                                         
+    def OnButton_wxDisconnectSerial(self, evt):
+        if self.parent.AnalogScope:     
+            self.parent.AnalogScope.CloseDevice()                           
     def OnButton_wxInitiateView(self, evt):
-        if not self.AnalogScope:
+        if not self.parent.AnalogScope:
             dev = self.wx_combo_serial_list.GetSelection()
             print '[CConfigPanel.OnButton_wxInitiateView] dev=',dev
             if dev != wx.NOT_FOUND :
                 DevString = self.wx_combo_serial_list.GetValue() 
-                if DevString == 'Port: Simulador':
-                   self.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
-                else:
-                   self.AnalogScope = CTSW1250(self.parent, dev, self.parent.TextOutput)      
+                if DevString == 'Simulador':
+                   self.parent.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
               
 class ScopeFrm(wx.Frame):
     def __init__(self, parent, output):
@@ -600,6 +671,8 @@ class ScopeFrm(wx.Frame):
       #self.VtkPane = self.CreateVtkCtrl()
       
       #self.VtkSpace1 = VtkSpace(self.VtkPane)
+      
+      self.AnalogScope = None
       
       self.USBXpress = parent.USBXpress
       
