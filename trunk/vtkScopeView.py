@@ -175,11 +175,11 @@ class VtkSpace:
       self.H_MAX = 800
       self.V_MAX = 1030
       
-      self.V_MAX_UNIT = 3.3
-      self.H_MAX_UNIT = 0.004 
+      self.V_MAX_UNIT = 10.0
+      self.H_MAX_UNIT = 0.1 
       
-      self.V_DIG_MAX_UNIT = 3.3
-      self.H_DIG_MAX_UNIT = 65000
+      self.V_DIG_MAX_UNIT = 10.0
+      self.H_DIG_MAX_UNIT = 4098
 
       for render in self.renScope:
           self.renScope[render]['points'] = vtk.vtkPoints()
@@ -190,7 +190,7 @@ class VtkSpace:
           self.renScope[render]['values'].SetName("Values")
           toggle = 0.0
           edge = 500
-          for i in range(self.H_MAX+6000):
+          for i in range(self.H_DIG_MAX_UNIT):
             self.renScope[render]['points'].InsertPoint(i,0,0,0)
             self.renScope[render]['values'].InsertValue(i,toggle)
             if i == edge:
