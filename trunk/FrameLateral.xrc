@@ -278,6 +278,27 @@
         </object>
         <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
       </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxSlider" name="wxXRangeSlider">
+              <value>4098</value>
+              <min>0</min>
+              <max>4098</max>
+              <tickfreq>1</tickfreq>
+              <tick>1</tick>
+              <XRCED>
+                <events>EVT_SCROLL</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+          </object>
+          <label>Plot Control</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+      </object>
     </object>
   </object>
 </resource>

@@ -166,14 +166,22 @@ class xrcTSW1250Panel(wx.Panel):
         self.wxChannelSelector = xrc.XRCCTRL(self, "wxChannelSelector")
         self.wxChCaptureButton = xrc.XRCCTRL(self, "wxChCaptureButton")
         self.wxCheckChSimulation = xrc.XRCCTRL(self, "wxCheckChSimulation")
+        self.wxXRangeSlider = xrc.XRCCTRL(self, "wxXRangeSlider")
 
         self.Bind(wx.EVT_BUTTON, self.OnButton_wxChCaptureButton, self.wxChCaptureButton)
+        self.Bind(wx.EVT_SCROLL, self.OnScroll_wxXRangeSlider, self.wxXRangeSlider)
 
 #!XRCED:begin-block:xrcTSW1250Panel.OnButton_wxChCaptureButton
     def OnButton_wxChCaptureButton(self, evt):
         # Replace with event handler code
         print "OnButton_wxChCaptureButton()"
 #!XRCED:end-block:xrcTSW1250Panel.OnButton_wxChCaptureButton        
+
+#!XRCED:begin-block:xrcTSW1250Panel.OnScroll_wxXRangeSlider
+    def OnScroll_wxXRangeSlider(self, evt):
+        # Replace with event handler code
+        print "OnScroll_wxXRangeSlider()"
+#!XRCED:end-block:xrcTSW1250Panel.OnScroll_wxXRangeSlider        
 
 
 
