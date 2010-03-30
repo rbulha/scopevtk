@@ -459,6 +459,12 @@ class CBase_Scope(wx.EvtHandler):
         size = self.parent.GetSize()
         size.IncBy(10,10)
         self.parent.SetSize(size)
+    def DestroyVtkCtrl(self):
+        if self.VtkPane:
+            self.parent._mgr.DetachPane(self.VtkPane)
+            self.parent._mgr.Update()
+            self.VtkPane.Destroy()
+            self.VtkPane = None
     def CreateVtkCtrl(self):
         VtkPanel = wx.Panel(id=wxID_FRMPANEL, name='vtkpanel', 
                 parent=self.parent,
@@ -470,7 +476,7 @@ class CBase_Scope(wx.EvtHandler):
         self.VtkSpace.UpdateSize()
         event.Skip()         
     def OnUpdatePlotArea(self, event):
-        self.VtkSpace.UpdateDataPlot(self.integerdata,1) 
+        self.VtkSpace.UpdateDataPlot(self.integerdata,1)
                                                               
 class CAnalog_Scope(CBase_Scope):
     def __init__(self,parent,device,console,name='analog',nchannel=1):
@@ -564,7 +570,8 @@ class CTSW1250(CBase_Scope):
         self.Npoints = 4096
         self.plot_thread = None
         self.Bind(EVT_TSW1205_CAPTURE_FINISHED, self.OnUpdatePlotArea)
-        self.InitDevice()
+        if not self.simulate:
+            self.InitDevice()
     def InitDevice(self):
         self.Device = CSerialCaptureBase()
         self.Device.Connect(self.DevicePort)
@@ -576,13 +583,14 @@ class CTSW1250(CBase_Scope):
         self.Device.SeletcDataLength(self.Npoints)
         sleep(0.1)
     def CloseDevice(self):
-        self.Device.Disconnect()
+        if not self.simulate:
+            self.Device.Disconnect()
     def LoadSimulation(self, channel):
         print "[CTSW1250] Init in simulate mode"
         self.integerdata = self.LoadSimulateData()
         print '[CTSW1250] Loaded %d points'%len(self.integerdata)
         print '[CTSW1250] data range:',(len(self.integerdata),max(self.integerdata))
-        self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
+        #self.VtkSpace.SetDataRange(len(self.integerdata),len(self.integerdata),max(self.integerdata),max(self.integerdata))
         #self.VtkSpace.SetPlotRange(0, len(self.integerdata),0, max(self.integerdata))
         self.Channel = channel
         evt = TSW1205CaptureFinishedEvent(Obj = self)
@@ -594,7 +602,8 @@ class CTSW1250(CBase_Scope):
     def SetChannel(self, channel):
         self.Channel = channel
     def LoadSimulateData(self):
-        file = open('dump_ch1_4096_100KHz_30mvpp.txt','r')
+        #file = open('dump_ch1_4096_100KHz_30mvpp.txt','r')
+        file = open('dump_ch1_4096_2MHz_30mvpp.txt','r')
         dadostr = file.readlines()
         dado = []
         for value in dadostr:
@@ -602,9 +611,9 @@ class CTSW1250(CBase_Scope):
         file.close()    
         return dado
     def OnUpdatePlotArea(self, event):
-        self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
+        #self.VtkSpace.SetDataRange(len(self.integerdata),10.0,max(self.integerdata),10.0)
         self.VtkSpace.UpdateDataPlot(self.integerdata,self.Channel)
-        self.plot_thread = None        
+        self.plot_thread = None  
 
 class CTSW1250Panel(xrcTSW1250Panel):
     def __init__(self, parent):
@@ -617,7 +626,11 @@ class CTSW1250Panel(xrcTSW1250Panel):
                 self.parent.AnalogScope.LoadSimulation(self.wxChannelSelector.GetValue())
             else:   
                 self.parent.AnalogScope.Capture()
-
+    def OnScroll_wxXRangeSlider(self, evt):
+        if self.parent.AnalogScope:
+            print self.wxXRangeSlider.GetValue()
+            self.parent.AnalogScope.VtkSpace.SetXPlotMaxVisible(self.wxChannelSelector.GetValue(),float(self.wxXRangeSlider.GetValue()))
+         
 class CConfigPanel(xrcConfiguracao):
     def __init__(self, parent):
         xrcConfiguracao.__init__(self, parent)
@@ -652,7 +665,15 @@ class CConfigPanel(xrcConfiguracao):
                        self.parent._mgr.Update()                                         
     def OnButton_wxDisconnectSerial(self, evt):
         if self.parent.AnalogScope:     
-            self.parent.AnalogScope.CloseDevice()                           
+            self.parent.AnalogScope.CloseDevice() 
+            if self.parent.TSW1250Panel:
+                self.parent._mgr.DetachPane(self.parent.TSW1250Panel)   
+                self.parent._mgr.Update()    
+                self.parent.TSW1250Panel.Destroy()
+                self.parent.TSW1250Panel = None
+            self.parent.AnalogScope.DestroyVtkCtrl() 
+            self.parent.AnalogScope = None   
+                                   
     def OnButton_wxInitiateView(self, evt):
         if not self.parent.AnalogScope:
             dev = self.wx_combo_serial_list.GetSelection()
@@ -661,6 +682,11 @@ class CConfigPanel(xrcConfiguracao):
                 DevString = self.wx_combo_serial_list.GetValue() 
                 if DevString == 'Simulador':
                    self.parent.AnalogScope = CTSW1250(self.parent, None, self.parent.TextOutput,True)
+                   self.parent.TSW1250Panel = CTSW1250Panel(self.parent)     
+                   self.parent._mgr.AddPane(self.parent.TSW1250Panel, 
+                                    wx.aui.AuiPaneInfo().Name("TSW1205").Caption("TSW1205").
+                                    Left().CloseButton(True).MaximizeButton(True))
+                   self.parent._mgr.Update()                   
               
 class ScopeFrm(wx.Frame):
     def __init__(self, parent, output):
