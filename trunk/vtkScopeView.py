@@ -175,8 +175,8 @@ class VtkSpace:
       self.H_MAX = 800
       self.V_MAX = 1030
       
-      self.V_MAX_UNIT = 10.0
-      self.H_MAX_UNIT = 0.1 
+      self.V_MAX_UNIT = 100.0
+      self.H_MAX_UNIT = 1.0 
       
       self.V_DIG_MAX_UNIT = 10.0
       self.H_DIG_MAX_UNIT = 4098
@@ -190,9 +190,15 @@ class VtkSpace:
           self.renScope[render]['values'].SetName("Values")
           toggle = 0.0
           edge = 500
+          #For fast render time
+          self.renScope[render]['points'].SetNumberOfPoints(self.H_DIG_MAX_UNIT)
+          self.renScope[render]['values'].SetNumberOfValues(self.H_DIG_MAX_UNIT)
           for i in range(self.H_DIG_MAX_UNIT):
-            self.renScope[render]['points'].InsertPoint(i,0,0,0)
-            self.renScope[render]['values'].InsertValue(i,toggle)
+            #self.renScope[render]['points'].InsertPoint(i,0,0,0)
+            #self.renScope[render]['values'].InsertValue(i,toggle)
+            #For fast render time in conjuction with SetNumberOfPoints and SetNumberOfValues
+            self.renScope[render]['points'].SetPoint(i,0,0,0)
+            self.renScope[render]['values'].SetValue(i,toggle)
             if i == edge:
               if toggle:
                 toggle = 0.0
@@ -222,46 +228,45 @@ class VtkSpace:
           self.renScope[render]['xyplot'].GetPositionCoordinate().SetValue(0.02, 0.1, 0)
           self.renScope[render]['xyplot'].GetPosition2Coordinate().SetValue(0.99, 0.9, 0)
           
-          self.renScope[render]['plotwidget'] = vtk.vtkXYPlotWidget()
-          self.renScope[render]['plotwidget'].SetXYPlotActor(self.renScope[render]['xyplot'])
-          self.renScope[render]['plotwidget'].SetInteractor(self.iren)
+          #self.renScope[render]['plotwidget'] = vtk.vtkXYPlotWidget()
+          #self.renScope[render]['plotwidget'].SetXYPlotActor(self.renScope[render]['xyplot'])
+          #self.renScope[render]['plotwidget'].SetInteractor(self.iren)
           self.renScope[render]['render'].AddActor2D(self.renScope[render]['xyplot'])
         
-    def SetAnalogPlotRange(self):
-      self.h_max = self.H_MAX
-      self.h_min = 0
-      self.v_min = 0
-      self.v_max = self.V_MAX_UNIT 
-      for render in self.renScope:          
-          self.renScope[render]['xyplot'].SetXRange(0,self.H_MAX)
-          self.renScope[render]['xyplot'].SetYRange(0,self.V_MAX_UNIT) 
-      self.renwin.Render()
     def SetDigitalPlotRange(self):
       self.h_max = self.H_DIG_MAX_UNIT
       self.h_min = 0
       self.v_min = 0
       self.v_max = self.V_DIG_MAX_UNIT  
-      for render in self.renScope:          
-          self.renScope[render]['xyplot'].SetXRange(0,self.H_DIG_MAX_UNIT)
-          self.renScope[render]['xyplot'].SetYRange(0,self.V_DIG_MAX_UNIT)
-      self.renwin.Render() 
+      for render in self.renScope: 
+          self.renScope[render]['xyplot'].SetPlotRange(0,0,0,0)           
+          #self.renScope[render]['xyplot'].SetXRange(0,self.H_DIG_MAX_UNIT)
+          #self.renScope[render]['xyplot'].SetYRange(0,self.V_DIG_MAX_UNIT)
+      self.renwin.Render()
+    def SetXPlotMaxVisible(self,channel,x_max):
+        channel = channel - 1
+        if channel >= 0:    
+            self.renScope[channel]['xyplot'].SetPlotRange(0,0,x_max,0)
+            self.renwin.Render()   
     def SetPlotRange(self,h_min, h_max,v_min, v_max):
       self.h_max = h_max
       self.h_min = h_min
       self.v_min = v_min
       self.v_max = v_max
       for render in self.renScope: 
-          self.renScope[render]['xyplot'].SetXRange(h_min,h_max)
-          self.renScope[render]['xyplot'].SetYRange(v_min,v_max) 
+          self.renScope[render]['xyplot'].SetPlotRange(0,0,0,0)
+          #self.renScope[render]['xyplot'].SetXRange(h_min,h_max)
+          #self.renScope[render]['xyplot'].SetYRange(v_min,v_max) 
       self.renwin.Render()
     def SetDataRange(self,h_max,h_max_unit,v_max,v_max_unit):   
       self.H_MAX = h_max
       self.V_MAX = v_max
       self.V_MAX_UNIT = h_max_unit
       self.H_MAX_UNIT = v_max_unit
-      for render in self.renScope: 
-          self.renScope[render]['xyplot'].SetXRange(0,h_max)
-          self.renScope[render]['xyplot'].SetYRange(0,v_max_unit) 
+      for render in self.renScope:
+          self.renScope[render]['xyplot'].SetPlotRange(0,0,0,0) 
+          #self.renScope[render]['xyplot'].SetXRange(0,h_max)
+          #self.renScope[render]['xyplot'].SetYRange(0,v_max_unit) 
       self.renwin.Render()             
     def GetPlotRange(self):
       Range={}
@@ -312,11 +317,19 @@ class VtkSpace:
     def UpdateDataPlot(self, data, channel):
       channel = channel - 1
       if channel >= 0:
-          print '[UpdateDataPlot] ch=%d, render=%s'%(channel,self.renScope[channel]['name'])  
+          print '[UpdateDataPlot] ch=%d, render=%s'%(channel,self.renScope[channel]['name'])
+          self.renScope[channel]['points'] = vtk.vtkPoints()
+          self.renScope[channel]['points'].SetNumberOfPoints(len(data))
+            
           self.renScope[channel]['values'] = vtk.vtkFloatArray()
-          self.renScope[channel]['values'].SetName("Data")
-          for value in data:
+          self.renScope[channel]['values'].SetName("Values")
+          self.renScope[channel]['values'].SetNumberOfValues(len(data))
+          for i,value in enumerate(data):
             unit_value = (float(value)/self.V_MAX)*self.V_MAX_UNIT
-            self.renScope[channel]['values'].InsertNextValue(unit_value)
-            self.renScope[channel]['polydata'].GetPointData().SetScalars(self.renScope[channel]['values'])
+            #self.renScope[channel]['values'].InsertNextValue(unit_value)
+            self.renScope[channel]['points'].SetPoint(i,0,0,0)
+            self.renScope[channel]['values'].SetValue(i,unit_value)
+          self.renScope[channel]['polydata'].SetPoints(self.renScope[channel]['points'])  
+          self.renScope[channel]['polydata'].GetPointData().SetScalars(self.renScope[channel]['values'])
+          #self.renScope[channel]['xyplot'].SetPlotRange(0,0,0,0)
           self.renwin.Render()
