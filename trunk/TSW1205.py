@@ -2,7 +2,7 @@ import serial
 import struct
 import time
 
-class CSerialCaptureBase():
+class CSerialCaptureBase:
     def __init__(self):
         print '[CSerialCaptureBase] - Init'
     def Connect(self, iport):
