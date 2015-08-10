@@ -1,0 +1,1 @@
+Capture and plot signal from several dedicated hardware interfaces.
